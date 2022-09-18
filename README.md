@@ -1,6 +1,6 @@
 # UTF8Encoder-HW
 
-A hardware UTF-8 encoder written in [Dart](https://dart.dev/) using the [ROHD](https://github.com/intel/rohd) framework. The implementation relies on the [WHATWG: Encoding - "UTF-8 encoder"](https://encoding.spec.whatwg.org/#utf-8-encoder) specification. The project is also [(TODO) available](https://github.com/chykon/utf8encoder-hw) on [pub.dev](https://pub.dev/).
+A hardware UTF-8 encoder written in [Dart](https://dart.dev/) using the [ROHD](https://github.com/intel/rohd) framework. The implementation relies on the [WHATWG: Encoding - "UTF-8 encoder"](https://encoding.spec.whatwg.org/#utf-8-encoder) specification. The project is also [available](https://pub.dev/packages/utf8encoder_hw) on [pub.dev](https://pub.dev/).
 
 ## Installation
 
@@ -10,11 +10,11 @@ A hardware UTF-8 encoder written in [Dart](https://dart.dev/) using the [ROHD](h
 
 ### Steps
 
-See [(TODO) Installing](https://github.com/chykon/utf8encoder-hw) section.
+See [Installing](https://pub.dev/packages/utf8encoder_hw/install) section.
 
 ## Usage
 
-An example of usage is available in the `example` directory or in [(TODO) Example](https://github.com/chykon/utf8encoder-hw) section.
+An example of usage is available in the `example` directory or in [Example](https://pub.dev/packages/utf8encoder_hw/example) section.
 
 ## Contributing
 
