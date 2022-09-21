@@ -1,4 +1,5 @@
 import 'package:rohd/rohd.dart';
+import 'package:utf8encoder_hw/src/alternative_operators.dart';
 import 'package:utf8encoder_hw/src/explicit_logic.dart';
 
 /// A module for converting Unicode code points to UTF-8.
@@ -22,60 +23,76 @@ class UTF8Encoder extends Module {
     final debug1 = Logic(name: 'debug_1', width: 21);
 
     Combinational([
-      count < 0,
+      count.cassign(0),
       IfBlock([
-        Iff((codepoint.logic >= 0) & codepoint.logic.lte(0x7F), [
-          bytes.logic < codepoint.logic.zeroExtend(32),
-          status.logic < UTF8Encoder.statusSuccess
+        Iff(codepoint.logic.gte(0).band(codepoint.logic.lte(0x7F)), [
+          bytes.logic.cassign(codepoint.logic.zeroExtend(32)),
+          status.logic.cassign(UTF8Encoder.statusSuccess),
         ]),
         ElseIf(
-          (codepoint.logic >= 0x80) & codepoint.logic.lte(0x7FF),
-          [count < 1, offset < 0xC0],
+          codepoint.logic.gte(0x80).band(codepoint.logic.lte(0x7FF)),
+          [
+            count.cassign(1),
+            offset.cassign(0xC0),
+          ],
         ),
         ElseIf(
-          (codepoint.logic >= 0x800) & codepoint.logic.lte(0xFFFF),
-          [count < 2, offset < 0xE0],
+          codepoint.logic.gte(0x800).band(codepoint.logic.lte(0xFFFF)),
+          [
+            count.cassign(2),
+            offset.cassign(0xE0),
+          ],
         ),
         ElseIf(
-          (codepoint.logic >= 0x10000) & codepoint.logic.lte(0x10FFFF),
-          [count < 3, offset < 0xF0],
+          codepoint.logic.gte(0x10000).band(codepoint.logic.lte(0x10FFFF)),
+          [
+            count.cassign(3),
+            offset.cassign(0xF0),
+          ],
         ),
-        Else([status.logic < UTF8Encoder.statusFailure])
+        Else([
+          status.logic.cassign(UTF8Encoder.statusFailure),
+        ])
       ]),
       IfBlock([
-        Iff(~count.eq(0), [
-          byte <
-              ((codepoint.logic >>>
-                          (Const(6, width: 5) * count.zeroExtend(5))) +
-                      offset.zeroExtend(21))
-                  .slice(7, 0),
-          // NOTE: Codepoint doesn't work correctly without this.
-          debug1 < codepoint.logic,
-          bytes.logic < byte.zeroExtend(32),
-          temp <
-              (codepoint.logic >>>
-                      (Const(6, width: 4) * (count - 1).zeroExtend(4)))
-                  .slice(7, 0),
-          byte < Const(0x80, width: 8) | (temp & Const(0x3F, width: 8)),
-          bytes.logic < bytes.logic.withSet(8, byte),
-          count < count - 1,
+        Iff(count.eq(0).bnot(), [
+          byte.cassign(
+            codepoint.logic
+                .srl(count.zeroExtend(5).mul(6))
+                .add(offset.zeroExtend(21))
+                .slice(7, 0),
+          ),
+          // TODO(chykon): codepoint doesn't work correctly without this, https://github.com/intel/rohd/issues/158.
+          debug1.cassign(codepoint.logic),
+          bytes.logic.cassign(byte.zeroExtend(32)),
+          temp.cassign(
+            codepoint.logic.srl(count.sub(1).zeroExtend(4).mul(6)).slice(7, 0),
+          ),
+          byte.cassign(temp.band(0x3F).bor(0x80)),
+          bytes.logic.cassign(bytes.logic.withSet(8, byte)),
+          count.cassign(count.sub(1)),
           IfBlock([
-            Iff(count.eq(0), [status.logic < UTF8Encoder.statusSuccess]),
+            Iff(count.eq(0), [
+              status.logic.cassign(UTF8Encoder.statusSuccess),
+            ]),
             Else([
-              temp <
-                  (codepoint.logic >>>
-                          (Const(6, width: 3) * (count - 1).zeroExtend(3)))
-                      .slice(7, 0),
-              byte < Const(0x80, width: 8) | (temp & Const(0x3F, width: 8)),
-              bytes.logic < bytes.logic.withSet(16, byte),
-              count < count - 1,
+              temp.cassign(
+                codepoint.logic
+                    .srl(count.sub(1).zeroExtend(3).mul(6))
+                    .slice(7, 0),
+              ),
+              byte.cassign(temp.band(0x3F).bor(0x80)),
+              bytes.logic.cassign(bytes.logic.withSet(16, byte)),
+              count.cassign(count.sub(1)),
               IfBlock([
-                Iff(count.eq(0), [status.logic < UTF8Encoder.statusSuccess]),
+                Iff(count.eq(0), [
+                  status.logic.cassign(UTF8Encoder.statusSuccess),
+                ]),
                 Else([
-                  temp < codepoint.logic.slice(7, 0),
-                  byte < Const(0x80, width: 8) | (temp & Const(0x3F, width: 8)),
-                  bytes.logic < bytes.logic.withSet(24, byte),
-                  status.logic < UTF8Encoder.statusSuccess
+                  temp.cassign(codepoint.logic.slice(7, 0)),
+                  byte.cassign(temp.band(0x3F).bor(0x80)),
+                  bytes.logic.cassign(bytes.logic.withSet(24, byte)),
+                  status.logic.cassign(UTF8Encoder.statusSuccess),
                 ])
               ])
             ])
